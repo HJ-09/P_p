@@ -1,8 +1,12 @@
 package myself;
 
 import javax.swing.*;
+import javax.xml.crypto.Data;
 import java.awt.*;
+import java.awt.datatransfer.*;
 import java.io.*;
+import java.util.Date;
+import java.util.TooManyListenersException;
 
 public class A19_1 extends JFrame {
     JMenuBar menuBar;
@@ -10,8 +14,10 @@ public class A19_1 extends JFrame {
     JMenuItem fileOpen;
     JMenuItem fileSave, fileSave1;
     JMenuItem fileNew; //새로 만들기
+    JMenuItem tear;
     JMenuItem copy;
     JMenuItem paste;
+    JMenuItem about;
 
     JFileChooser fc;
     JTextArea ta;
@@ -45,8 +51,7 @@ public class A19_1 extends JFrame {
                         int state = fc.showSaveDialog(A19_1.this);
                         if (state == JFileChooser.APPROVE_OPTION) {
                             File file = fc.getSelectedFile();
-                            try (FileWriter fw = new FileWriter(file);
-                                 BufferedWriter bw = new BufferedWriter(fw)) {
+                            try (FileWriter fw = new FileWriter(file); BufferedWriter bw = new BufferedWriter(fw)) {
                                 bw.write(ta.getText());
                             } catch (Exception e1) {
                                 e1.printStackTrace();
@@ -70,9 +75,7 @@ public class A19_1 extends JFrame {
             if (state == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
                 fc.setCurrentDirectory(file.getParentFile());
-                try (FileReader fr = new FileReader(file);
-                     BufferedReader br = new BufferedReader(fr);
-                ) {
+                try (FileReader fr = new FileReader(file); BufferedReader br = new BufferedReader(fr);) {
                     String str = "";
                     StringBuilder sb = new StringBuilder();
                     while ((str = br.readLine()) != null) {
@@ -99,9 +102,7 @@ public class A19_1 extends JFrame {
                         return;
                     }
                 }
-                try (FileWriter fw = new FileWriter(currentFile);
-                     BufferedWriter bw = new BufferedWriter(fw);
-                ) {
+                try (FileWriter fw = new FileWriter(currentFile); BufferedWriter bw = new BufferedWriter(fw);) {
                     String txt = ta.getText();
                     bw.write(txt);
                     System.out.println("저장 완료");
@@ -116,9 +117,7 @@ public class A19_1 extends JFrame {
             int state = fc.showSaveDialog(A19_1.this);
             if (state == JFileChooser.APPROVE_OPTION) {
                 File file1 = fc.getSelectedFile();
-                try (FileWriter fw1 = new FileWriter(file1);
-                     BufferedWriter bw1 = new BufferedWriter(fw1);
-                ) {
+                try (FileWriter fw1 = new FileWriter(file1); BufferedWriter bw1 = new BufferedWriter(fw1);) {
                     String txt1 = ta.getText();
                     bw1.write(txt1);
                     System.out.println("다른 이름으로 저장 완료");
@@ -128,17 +127,64 @@ public class A19_1 extends JFrame {
             }
         });
 
+        tear=new JMenuItem("잘라내기(T)");
+        tear.addActionListener((e)->{
+            String selectedText1 = ta.getSelectedText();
+            if(selectedText1!=null){
+                StringSelection selection1=new StringSelection(selectedText1);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection1, null);
+
+                ta.replaceRange("", ta.getSelectionStart(),ta.getSelectionEnd());
+            }
+        });
+
         copy = new JMenuItem("복사(C)");
+        copy.addActionListener((e) -> {
+            String selectedText = ta.getSelectedText();
+            if (selectedText != null) {
+                StringSelection selection = new StringSelection(selectedText);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, null);
+            }
+        });
+
         paste = new JMenuItem("붙여넣기(P)");
+        paste.addActionListener((e)->{
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            Transferable contents=clipboard.getContents(null);
+            if (contents!=null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)){
+                String pasteText= null;
+                try {
+                    pasteText = (String)contents.getTransferData(DataFlavor.stringFlavor);
+                } catch (UnsupportedFlavorException ex) {
+                    throw new RuntimeException(ex);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                ta.insert(pasteText, ta.getCaretPosition());
+            }
+        });
+
+        about=new JMenuItem("정보(A)");
+        about.addActionListener((e)->{
+            JOptionPane.showMessageDialog(this,"헤지스 메모장 v0.0입니다.","정보",JOptionPane.INFORMATION_MESSAGE);
+        });
+
 
         F.add(fileNew);
         F.add(fileOpen);
         F.add(fileSave);
         F.add(fileSave1);
+        E.add(tear);
         E.add(copy);
         E.add(paste);
+        H.add(about);
         menuBar.add(F);
         menuBar.add(E);
+        menuBar.add(O);
+        menuBar.add(V);
+        menuBar.add(H);
         this.setJMenuBar(menuBar);
 
 
